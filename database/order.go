@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"restaurant/models"
 )
@@ -12,6 +13,7 @@ func CreateOrder(sqlDb *sql.DB, order models.Order) error {
 			order_ (id, price, is_paid, table_id, waiter_id)
 		VALUES ($1, $2, $3, $4, $5)
 	`
+	fmt.Println("id: ", order.Id, "is_paid: ", order.Ispaid, "table_id: ", order.TableId, "waiter_id: ", order.WaiterId, "price: ", order.Price)
 	_, err := sqlDb.Exec(query, order.Id, order.Price, order.Ispaid, order.TableId, order.WaiterId)
 
 	if err != nil {

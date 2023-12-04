@@ -2,18 +2,24 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"restaurant/models"
 )
+
+func CalculateProductsPrice(o *models.OrderProducts) {
+	product, _ := GetProductById(ConnectToDb(), o.ProductId)
+	o.Price = float64(o.Quantity) * float64(product.Price)
+}
 
 func CreateOrderProducts(sqlDb *sql.DB, order_products models.OrderProducts) error {
 	query := `
 		INSERT INTO 
 			order_products (id, quantity, price, order_id, product_id)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, $3, $4, $5)
 	`
 	_, err := sqlDb.Exec(query, order_products.Id, order_products.Quantity, order_products.Price, order_products.OrederId, order_products.ProductId)
-
+	fmt.Println("id: ", order_products.Id, "quantity: ", order_products.Quantity, "price: ", order_products.Price, "order_id: ", order_products.OrederId, "product_id: ", order_products.ProductId)
 	if err != nil {
 		log.Println("error on order_products add db: ", err)
 		return err

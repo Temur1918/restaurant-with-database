@@ -2,7 +2,7 @@ package models
 
 type Table struct {
 	Id     string `json:"id"`
-	Number uint8  `json:"number"`
+	Number int    `json:"number"`
 }
 
 type Waiter struct {
@@ -28,18 +28,10 @@ type Order struct {
 type OrderProducts struct {
 	Id        string  `json:"id"`
 	OrederId  string  `json:"order_id"`
+	Products  Product `json:"products"`
 	ProductId string  `json:"product"`
-	Quantity  uint8   `json:"quantity"`
+	Quantity  int     `json:"quantity"`
 	Price     float64 `json:"price"`
-}
-
-func (o *OrderProducts) CalculateProductsPrice() {
-	// product, _ := database.GetOrderProductsProduct(database.ConnectToDb(), o)
-	// if o != nil {
-	// 	o.Price = float64(o.Quantity) * product.Price
-	// } else {
-	// 	o.Price = 0
-	// }
 }
 
 func (o *Order) CalculateOrderPrice() {

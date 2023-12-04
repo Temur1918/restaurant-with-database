@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"restaurant/database"
 	"restaurant/models"
 	"restaurant/ui"
@@ -28,9 +29,15 @@ func CreateOrder() {
 	waiter, _ := database.GetWaiterByName(database.ConnectToDb(), waiterName)
 	newOrder.WaiterId = waiter.Id
 
+	err := database.CreateOrder(database.ConnectToDb(), newOrder)
+	if err != nil {
+		fmt.Println("Order yaratilmadi! :", err)
+		return
+	}
+
 	fmt.Println("Order muvaffaqiyatli yaratildi!")
 
-	_, err := database.GetProducts(database.ConnectToDb())
+	_, err = database.GetProducts(database.ConnectToDb())
 
 	flag := true
 	if err == nil {
@@ -54,12 +61,12 @@ func CreateOrder() {
 				orderProducts.OrederId = newOrder.Id
 				orderProducts.ProductId = product.Id
 
-				var quantity uint8
+				var quantity int
 				ui.Tprint("Nechta buyurtma berishni hohlaysiz: ")
 				fmt.Scan(&quantity)
 				orderProducts.Quantity = quantity
 
-				orderProducts.CalculateProductsPrice()
+				database.CalculateProductsPrice(&orderProducts)
 
 				database.CreateOrderProducts(database.ConnectToDb(), orderProducts)
 				newOrder.Products = append(newOrder.Products, orderProducts)
@@ -79,9 +86,9 @@ func CreateOrder() {
 	}
 
 	newOrder.CalculateOrderPrice()
-	err = database.CreateOrder(database.ConnectToDb(), newOrder)
+	err = database.UpdateOrder(database.ConnectToDb(), newOrder)
 	if err != nil {
-		fmt.Println("Order yaratilmadi! :", err)
+		log.Println("error on update order: ", err)
 		return
 	}
 }
@@ -124,12 +131,12 @@ func UpdateOrder() {
 				orderProducts.OrederId = order.Id
 				orderProducts.ProductId = product.Id
 
-				var quantity uint8
+				var quantity int
 				ui.Tprint("Nechta buyurtma berishni hohlaysiz: ")
 				fmt.Scan(&quantity)
 				orderProducts.Quantity = quantity
 
-				orderProducts.CalculateProductsPrice()
+				database.CalculateProductsPrice(&orderProducts)
 
 				database.CreateOrderProducts(database.ConnectToDb(), orderProducts)
 				order.Products = append(order.Products, orderProducts)

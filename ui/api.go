@@ -12,20 +12,20 @@ func PrintApi() {
 	|---------------------------------------------------------------|
 	|                          Restaurant
 	|     -----------------------------------------------------     |
-	|     restaurant:/info--
-	|     restaurant:/create-table--
-	|     restaurant:/get-tables--
+	|     restaurant:/info
+	|     restaurant:/create-table
+	|     restaurant:/get-tables
 	|     restaurant:/get-table-check
-	|     restaurant:/create-order--
-	|     restaurant:/update-order--
-	|     restaurant:/get-products--
-	|     restaurant:/get-product/id--
-	|     restaurant:/create-product--
-	|     restaurant:/delete-product--
-	|     restaurant:/update-price-product--
-	|     restaurant:/create-waiter--
-	|     restaurant:/delete-waiter--
-	|     restaurant:/get-waiters--
+	|     restaurant:/create-order
+	|     restaurant:/update-order
+	|     restaurant:/get-products
+	|     restaurant:/get-product/id
+	|     restaurant:/create-product
+	|     restaurant:/delete-product
+	|     restaurant:/update-price-product
+	|     restaurant:/create-waiter
+	|     restaurant:/delete-waiter
+	|     restaurant:/get-waiters
 	|---------------------------------------------------------------|
 	`)
 	fmt.Println()
@@ -96,17 +96,19 @@ func PrintTables(tables []models.Table) {
 }
 
 func GetTableCheck(table models.Table, order models.Order) {
+	order_products, err := database.GetOrderProducts(database.ConnectToDb(), order)
+	if err != nil {
+		fmt.Printf("			         Buyurtma yuq!\n")
+	}
 	waiter, _ := database.GetWaiterById(database.ConnectToDb(), order.WaiterId)
 	fmt.Println("|----------------------------------------------|")
 	fmt.Printf("					Table number: %d\n\n", table.Number)
-	order_products, _ := database.GetOrderProducts(database.ConnectToDb(), order)
-	fmt.Println(order_products)
 	if len(order_products) > 0 {
-		for _, order := range order_products {
-			product, _ := database.GetOrderProductsProduct(database.ConnectToDb(), order)
+		for _, order_product := range order_products {
+			product, _ := database.GetOrderProductsProduct(database.ConnectToDb(), order_product)
 			fmt.Printf("			--------%s--------		 	Jami\n", product.Name)
-			fmt.Printf("			| %.2f  * %d       ", product.Price, order.Quantity)
-			fmt.Printf("			 %.2f\n", order.Price)
+			fmt.Printf("			| %.2f  * %d       ", product.Price, order_product.Quantity)
+			fmt.Printf("			 %.2f\n", order_product.Price)
 		}
 		fmt.Printf("			|------------------------------------------------\n")
 		fmt.Printf("\n			 Waiter name:				 %s", waiter.Name)
@@ -114,8 +116,6 @@ func GetTableCheck(table models.Table, order models.Order) {
 		fmt.Printf("			Jami					 %.2f", order.Price)
 		fmt.Printf("\n			Servicce fee (19)			 %.2f", config.ServiceFee(order.Price))
 		fmt.Printf("\n			Umumiy summa: 				 %.2f", order.Price+config.ServiceFee(order.Price))
-	} else {
-		fmt.Printf("			         Buyurtma yuq!\n")
 	}
 
 }
