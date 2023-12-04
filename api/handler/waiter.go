@@ -2,8 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"log"
+	"restaurant/database"
 	"restaurant/models"
-	"restaurant/storage/postgres"
 	"restaurant/ui"
 
 	"github.com/google/uuid"
@@ -17,7 +18,7 @@ func CreateWaiter() {
 	ui.Tprint("Enter Waiter Name: ")
 	fmt.Scan(&newWaiter.Name)
 
-	err := postgres.CreateWaiter(newWaiter)
+	err := database.CreateWaiter(database.ConnectToDb(), newWaiter)
 	if err != nil {
 		fmt.Println("Waiter kiritilmadi! :", err)
 		return
@@ -27,23 +28,29 @@ func CreateWaiter() {
 }
 
 func GetWaiters() {
-	ui.PrintWaiter()
+	waiters, err := database.GetWaiters(database.ConnectToDb())
+	if err != nil {
+		log.Println("waiters not found: ", err)
+		return
+	}
+	ui.PrintWaiter(waiters)
 }
 
 func DeleteWaiter() {
 	ui.Tprint("Enter Waiter Name: --> ")
 	var name string
 	fmt.Scan(&name)
-	waiterId, err := postgres.GetWaiterId(name)
+	waiter, err := database.GetWaiterByName(database.ConnectToDb(), name)
 	if err != nil {
 		fmt.Println("Waiter not found")
 		return
 	}
-	waiter := postgres.GetWaiter(waiterId)
-	err = postgres.DeleteWaiter(waiter)
+
+	err = database.DeleteWaiter(database.ConnectToDb(), waiter)
 	if err != nil {
 		fmt.Println("Waiter not found")
-	} else {
-		fmt.Println("Waiter deleted successfully")
+		return
 	}
+
+	fmt.Println("Waiter deleted successfully")
 }

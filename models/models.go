@@ -5,6 +5,17 @@ type Table struct {
 	Number uint8  `json:"number"`
 }
 
+type Waiter struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type Product struct {
+	Id    string  `json:"id"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
+}
+
 type Order struct {
 	Id       string          `json:"id"`
 	TableId  string          `json:"table_id"`
@@ -15,29 +26,20 @@ type Order struct {
 }
 
 type OrderProducts struct {
-	Id       string  `json:"id"`
-	OrederId string  `json:"order_id"`
-	Product  Product `json:"product"`
-	Quantity uint8   `json:"quantity"`
-	Price    float64 `json:"price"`
-}
-
-type Product struct {
-	Id    string  `json:"id"`
-	Name  string  `json:"name"`
-	Price float64 `json:"price"`
-}
-type Waiter struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id        string  `json:"id"`
+	OrederId  string  `json:"order_id"`
+	ProductId string  `json:"product"`
+	Quantity  uint8   `json:"quantity"`
+	Price     float64 `json:"price"`
 }
 
 func (o *OrderProducts) CalculateProductsPrice() {
-	if o != nil {
-		o.Price = float64(o.Quantity) * o.Product.Price
-	} else {
-		o.Price = 0
-	}
+	// product, _ := database.GetOrderProductsProduct(database.ConnectToDb(), o)
+	// if o != nil {
+	// 	o.Price = float64(o.Quantity) * product.Price
+	// } else {
+	// 	o.Price = 0
+	// }
 }
 
 func (o *Order) CalculateOrderPrice() {

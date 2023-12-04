@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
+	"restaurant/database"
 	"restaurant/models"
-	"restaurant/storage/postgres"
 	"restaurant/ui"
 
 	"github.com/google/uuid"
@@ -15,20 +15,22 @@ func CreateOrder() {
 	newOrder.Id = uuid.New().String()
 
 	ui.Tprint("Enter of Table number: ")
-	var number uint8
+	var number int
 	fmt.Scan(&number)
-	tableId, _ := postgres.GetTableId(number)
-	newOrder.TableId = tableId
+
+	table, _ := database.GetTableByNumber(database.ConnectToDb(), number)
+	newOrder.TableId = table.Id
 
 	ui.Tprint("Enter of Waiter Name: ")
 	var waiterName string
 	fmt.Scan(&waiterName)
-	waiterId, _ := postgres.GetWaiterId(waiterName)
-	newOrder.WaiterId = waiterId
+
+	waiter, _ := database.GetWaiterByName(database.ConnectToDb(), waiterName)
+	newOrder.WaiterId = waiter.Id
 
 	fmt.Println("Order muvaffaqiyatli yaratildi!")
 
-	_, err := postgres.GetProducts()
+	_, err := database.GetProducts(database.ConnectToDb())
 
 	flag := true
 	if err == nil {
@@ -37,19 +39,20 @@ func CreateOrder() {
 
 			var orderProducts models.OrderProducts
 
-			// for _, product := range products {
-			// 	ui.PrintProduct(product)
-			// }
-			ui.PrintProducts()
+			products, err := database.GetProducts(database.ConnectToDb())
+			if err != nil {
+				return
+			}
+			ui.PrintProducts(products)
 
 			ui.Tprint("Buyurtmalaringizni tanlang")
 			var orderProduct string
 			fmt.Scan(&orderProduct)
-			product, flag := postgres.GetProductName(orderProduct)
+			product, flag := database.GetProductByName(database.ConnectToDb(), orderProduct)
 			if flag {
 				orderProducts.Id = uuid.New().String()
 				orderProducts.OrederId = newOrder.Id
-				orderProducts.Product = product
+				orderProducts.ProductId = product.Id
 
 				var quantity uint8
 				ui.Tprint("Nechta buyurtma berishni hohlaysiz: ")
@@ -58,7 +61,7 @@ func CreateOrder() {
 
 				orderProducts.CalculateProductsPrice()
 
-				postgres.CreateOrderProducts(orderProducts)
+				database.CreateOrderProducts(database.ConnectToDb(), orderProducts)
 				newOrder.Products = append(newOrder.Products, orderProducts)
 			} else {
 				fmt.Println("Bu buyurtma mavjud emas!")
@@ -76,7 +79,7 @@ func CreateOrder() {
 	}
 
 	newOrder.CalculateOrderPrice()
-	err = postgres.CreateOrder(newOrder)
+	err = database.CreateOrder(database.ConnectToDb(), newOrder)
 	if err != nil {
 		fmt.Println("Order yaratilmadi! :", err)
 		return
@@ -85,21 +88,20 @@ func CreateOrder() {
 
 func UpdateOrder() {
 	ui.Tprint("Enter of Table number: ")
-	var number uint8
+	var number int
 	fmt.Scan(&number)
-	tableId, _ := postgres.GetTableId(number)
-	table, err := postgres.GetTable(tableId)
+	table, err := database.GetTableByNumber(database.ConnectToDb(), number)
 	if err != nil {
 		fmt.Println("Table not found!")
 		return
 	}
-	order, err := postgres.GetTableOrder(table)
+
+	order, err := database.GetTableOrder(database.ConnectToDb(), table)
 	if err != nil {
 		fmt.Println("No orders in this table!")
 	}
-	order.Price = 0
 
-	products, err := postgres.GetProducts()
+	products, err := database.GetProducts(database.ConnectToDb())
 
 	flag := true
 	if err == nil {
@@ -115,11 +117,12 @@ func UpdateOrder() {
 			ui.Tprint("Buyurtmalaringizni tanlang")
 			var orderProduct string
 			fmt.Scan(&orderProduct)
-			product, flag := postgres.GetProductName(orderProduct)
+
+			product, flag := database.GetProductByName(database.ConnectToDb(), orderProduct)
 			if flag {
 				orderProducts.Id = uuid.New().String()
 				orderProducts.OrederId = order.Id
-				orderProducts.Product = product
+				orderProducts.ProductId = product.Id
 
 				var quantity uint8
 				ui.Tprint("Nechta buyurtma berishni hohlaysiz: ")
@@ -128,7 +131,7 @@ func UpdateOrder() {
 
 				orderProducts.CalculateProductsPrice()
 
-				postgres.CreateOrderProducts(orderProducts)
+				database.CreateOrderProducts(database.ConnectToDb(), orderProducts)
 				order.Products = append(order.Products, orderProducts)
 			} else {
 				fmt.Println("Bu buyurtma mavjud emas!")
@@ -146,7 +149,7 @@ func UpdateOrder() {
 	}
 
 	order.CalculateOrderPrice()
-	err = postgres.UpdateOrder(order)
+	err = database.UpdateOrder(database.ConnectToDb(), order)
 	if err != nil {
 		fmt.Println("Order update failed! :", err)
 		return

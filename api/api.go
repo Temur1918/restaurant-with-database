@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"restaurant/api/handler"
-	"restaurant/config"
 	"restaurant/ui"
 )
 
@@ -13,8 +12,8 @@ func Router() {
 		var path string
 		fmt.Print("choose a path: ")
 		fmt.Scan(&path)
-		config.Clear()
-		fmt.Scanln()
+		// config.Clear()
+		// fmt.Scanln()
 		switch path {
 		case "info":
 			{

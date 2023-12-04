@@ -2,8 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"log"
+	"restaurant/database"
 	"restaurant/models"
-	"restaurant/storage/postgres"
 	"restaurant/ui"
 
 	"github.com/google/uuid"
@@ -14,11 +15,10 @@ func CreateTable() {
 
 	newTable.Id = uuid.New().String()
 
-	// fmt.Print("Enter Table Number: ")
 	ui.Tprint("Enter Table Number: ")
 	fmt.Scan(&newTable.Number)
 
-	err := postgres.CreateTable(newTable)
+	err := database.CreateTable(database.ConnectToDb(), newTable)
 	if err != nil {
 		fmt.Println("Table does not created! :", err)
 		return
@@ -28,7 +28,12 @@ func CreateTable() {
 }
 
 func GetTables() {
-	ui.PrintTables()
+	tables, err := database.GetTables(database.ConnectToDb())
+	if err != nil {
+		log.Println("tables does not find: ", err)
+		return
+	}
+	ui.PrintTables(tables)
 }
 
 func GetTableCheck() {
@@ -36,11 +41,12 @@ func GetTableCheck() {
 	var tableNumber int
 	fmt.Scan(&tableNumber)
 
-	table, order, err := postgres.GetTableCheck(tableNumber)
+	table, order, err := database.GetTableCheck(database.ConnectToDb(), tableNumber)
 
-	if err == nil {
-
-		ui.GetTableCheck(table, order)
-
+	if err != nil {
+		log.Println("table check does not print: ", err)
+		return
 	}
+
+	ui.GetTableCheck(table, order)
 }

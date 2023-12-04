@@ -3,8 +3,8 @@ package ui
 import (
 	"fmt"
 	"restaurant/config"
+	"restaurant/database"
 	"restaurant/models"
-	"restaurant/storage/postgres"
 )
 
 func PrintApi() {
@@ -12,31 +12,31 @@ func PrintApi() {
 	|---------------------------------------------------------------|
 	|                          Restaurant
 	|     -----------------------------------------------------     |
-	|     restaurant:/info
-	|     restaurant:/create-table
-	|     restaurant:/get-tables
+	|     restaurant:/info--
+	|     restaurant:/create-table--
+	|     restaurant:/get-tables--
 	|     restaurant:/get-table-check
-	|     restaurant:/create-order
-	|     restaurant:/update-order
-	|     restaurant:/get-products
-	|     restaurant:/get-product/id
-	|     restaurant:/create-product
-	|     restaurant:/delete-product
-	|     restaurant:/update-price-product
-	|     restaurant:/create-waiter
-	|     restaurant:/delete-waiter
-	|     restaurant:/get-waiters
+	|     restaurant:/create-order--
+	|     restaurant:/update-order--
+	|     restaurant:/get-products--
+	|     restaurant:/get-product/id--
+	|     restaurant:/create-product--
+	|     restaurant:/delete-product--
+	|     restaurant:/update-price-product--
+	|     restaurant:/create-waiter--
+	|     restaurant:/delete-waiter--
+	|     restaurant:/get-waiters--
 	|---------------------------------------------------------------|
 	`)
 	fmt.Println()
 }
 
 func PrintRestaurantinfo() {
-	product, _ := postgres.GetProducts()
+	product, _ := database.GetProducts(database.ConnectToDb())
 	products := len(product)
-	waiter, _ := postgres.GetWaiters()
+	waiter, _ := database.GetWaiters(database.ConnectToDb())
 	waiters := len(waiter)
-	table, _ := postgres.GetTables()
+	table, _ := database.GetTables(database.ConnectToDb())
 	tables := len(table)
 	fmt.Printf(`
 	|------------------Restaurant-------------------|
@@ -60,13 +60,9 @@ func PrintProduct(product models.Product) {
 	fmt.Println("*********************************************************")
 }
 
-func PrintProducts() {
+func PrintProducts(products []models.Product) {
 	fmt.Println("| ----------------------------  Menu  --------------------------- |")
 	fmt.Println("| ---------------------------------------------------------------- |")
-	products, err := postgres.GetProducts()
-	if err != nil {
-		return
-	}
 	index := 1
 	for _, product := range products {
 		fmt.Printf("| %d\t Name: %s\t\t\t Price: %.2f\n", index, product.Name, product.Price)
@@ -75,13 +71,9 @@ func PrintProducts() {
 	fmt.Println("| ---------------------------------------------------------------- |")
 }
 
-func PrintWaiter() {
+func PrintWaiter(waiters []models.Waiter) {
 	fmt.Println("| --------------------------  Waiters  ------------------------- |")
 	fmt.Println("*********************************************************")
-	waiters, err := postgres.GetWaiters()
-	if err != nil {
-		return
-	}
 	index := 1
 	for _, waiter := range waiters {
 		fmt.Printf("%d\t %s\n", index, waiter.Name)
@@ -90,12 +82,8 @@ func PrintWaiter() {
 	fmt.Println("*********************************************************")
 }
 
-func PrintTables() {
+func PrintTables(tables []models.Table) {
 	fmt.Println("| --------------------------  Tables  ------------------------- |")
-	tables, err := postgres.GetTables()
-	if err != nil {
-		return
-	}
 	index := 1
 	for _, table := range tables {
 		fmt.Printf("\t%d\t", table.Number)
@@ -108,16 +96,20 @@ func PrintTables() {
 }
 
 func GetTableCheck(table models.Table, order models.Order) {
+	waiter, _ := database.GetWaiterById(database.ConnectToDb(), order.WaiterId)
 	fmt.Println("|----------------------------------------------|")
 	fmt.Printf("					Table number: %d\n\n", table.Number)
-	if len(order.Products) > 0 {
-		for _, order := range order.Products {
-			fmt.Printf("			--------%s--------		 	Jami\n", order.Product.Name)
-			fmt.Printf("			| %.2f  * %d       ", order.Product.Price, order.Quantity)
+	order_products, _ := database.GetOrderProducts(database.ConnectToDb(), order)
+	fmt.Println(order_products)
+	if len(order_products) > 0 {
+		for _, order := range order_products {
+			product, _ := database.GetOrderProductsProduct(database.ConnectToDb(), order)
+			fmt.Printf("			--------%s--------		 	Jami\n", product.Name)
+			fmt.Printf("			| %.2f  * %d       ", product.Price, order.Quantity)
 			fmt.Printf("			 %.2f\n", order.Price)
 		}
 		fmt.Printf("			|------------------------------------------------\n")
-		fmt.Printf("\n			 Waiter name:				 %s", postgres.GetWaiterName(order.WaiterId))
+		fmt.Printf("\n			 Waiter name:				 %s", waiter.Name)
 		fmt.Printf("\n			|------------------------------------------------\n")
 		fmt.Printf("			Jami					 %.2f", order.Price)
 		fmt.Printf("\n			Servicce fee (19)			 %.2f", config.ServiceFee(order.Price))

@@ -2,8 +2,8 @@ package handler
 
 import (
 	"fmt"
+	"restaurant/database"
 	"restaurant/models"
-	"restaurant/storage/postgres"
 	"restaurant/ui"
 
 	"github.com/google/uuid"
@@ -17,7 +17,7 @@ func CreateOrderProductsducts() {
 	ui.Tprint("Number of Order: ")
 	fmt.Scan(&newOrderProduct.Quantity)
 
-	err := postgres.CreateOrderProducts(newOrderProduct)
+	err := database.CreateOrderProducts(database.ConnectToDb(), newOrderProduct)
 	if err != nil {
 		fmt.Println("OrderProduct kiritilmadi! :", err)
 		return
